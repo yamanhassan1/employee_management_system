@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
+import PasswordInput from '../common/PasswordInput'
 
 export default function PasswordResetForm({ mode = 'forgot' }) {
   const [email, setEmail] = useState('')
@@ -67,7 +68,7 @@ export default function PasswordResetForm({ mode = 'forgot' }) {
     } catch (err) {
       setIsError(true)
       const message = err?.response?.data?.message
-      
+
       if (message?.includes('invalid') || message?.includes('expired')) {
         setMsg(`${message} Please request a new reset link.`)
       } else {
@@ -80,7 +81,15 @@ export default function PasswordResetForm({ mode = 'forgot' }) {
 
   return (
     <form onSubmit={submit} className="auth-form">
-      <h2>{mode === 'forgot' ? 'Forgot Password' : 'Reset Password'}</h2>
+      <div className="auth-brand-header">
+        <img src="/favicon.svg" alt="logo" className="auth-brand-logo" />
+        <h2>{mode === 'forgot' ? 'Forgot Password' : 'Reset Password'}</h2>
+        <p className="auth-brand-sub">
+          {mode === 'forgot'
+            ? 'Enter your email to receive a reset link'
+            : 'Enter a new password for your account'}
+        </p>
+      </div>
       {msg && <div className={isError ? 'form-error' : 'form-msg'}>{msg}</div>}
 
       {mode === 'forgot' ? (
@@ -112,36 +121,28 @@ export default function PasswordResetForm({ mode = 'forgot' }) {
             <small className="form-hint">Check your email for the reset link</small>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reset-new-password">New Password</label>
-            <input
-              id="reset-new-password"
-              value={newPassword}
-              type="password"
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="new-password"
-              disabled={loading}
-              placeholder="••••••••"
-            />
-            <small className="form-hint">At least 8 characters</small>
-          </div>
+          <PasswordInput
+            id="reset-new-password"
+            label="New Password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            disabled={loading}
+            hint="At least 8 characters"
+          />
 
-          <div className="form-group">
-            <label htmlFor="reset-confirm-password">Confirm Password</label>
-            <input
-              id="reset-confirm-password"
-              value={confirmPassword}
-              type="password"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="new-password"
-              disabled={loading}
-              placeholder="••••••••"
-            />
-          </div>
+          <PasswordInput
+            id="reset-confirm-password"
+            label="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            disabled={loading}
+          />
         </>
       )}
 

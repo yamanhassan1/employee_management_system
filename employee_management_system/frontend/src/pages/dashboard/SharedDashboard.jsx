@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../../components/common/Navbar'
 import useAuth from '../../hooks/useAuth'
+import { ROLE_NAMES } from '../../utils/constants'
 
 export default function SharedDashboard({
   title,
@@ -8,15 +9,12 @@ export default function SharedDashboard({
   actionTitle,
   actionDescription,
   actionButtons = [],
+  children = null,
 }) {
-  const { user, logout, getSessions, revokeSession } = useAuth()
+const { user, logout, getSessions, revokeSession } = useAuth()
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  useEffect(() => {
-    fetchSessions()
-  }, [])
 
   const fetchSessions = async () => {
     try {
@@ -31,6 +29,10 @@ export default function SharedDashboard({
     }
   }
 
+  useEffect(() => {
+    fetchSessions()
+  }, [])
+
   const handleRevokeSession = async (sessionId) => {
     try {
       await revokeSession(sessionId)
@@ -40,13 +42,22 @@ export default function SharedDashboard({
     }
   }
 
+  const managerName = user?.reportsTo?.name || user?.reportsTo || null
+  const departmentName = user?.department?.name || user?.department || null
+
   return (
     <div className="page-container">
       <Navbar />
       <main className="page-main">
         <div className="dashboard-wrapper">
-          <div className="dashboard-card">
-            <h2>{title}</h2>
+<div className="dashboard-card">
+            <div className="dashboard-brand-header">
+              <img src="/favicon.svg" alt="logo" className="dashboard-brand-logo" />
+              <div>
+                <h2>{title}</h2>
+                <p className="dashboard-brand-sub">Employee Management System</p>
+              </div>
+            </div>
             <div className="user-info">
               <div className="info-row">
                 <span className="info-label">Name:</span>
@@ -58,7 +69,19 @@ export default function SharedDashboard({
               </div>
               <div className="info-row">
                 <span className="info-label">Role:</span>
-                <span className={`info-badge ${badgeClass}`}>{user?.role}</span>
+                <span className={`info-badge ${badgeClass}`}>{ROLE_NAMES[user?.role] || user?.role}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Job Title:</span>
+                <span className="info-value">{user?.jobTitle || '—'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Department:</span>
+                <span className="info-value">{departmentName || '—'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Manager:</span>
+                <span className="info-value">{managerName || '—'}</span>
               </div>
               <div className="info-row">
                 <span className="info-label">Last Login:</span>
@@ -106,6 +129,8 @@ export default function SharedDashboard({
               ))}
             </div>
           </div>
+
+          {children}
 
           <div className="dashboard-card">
             <button onClick={logout} className="btn danger full-width">

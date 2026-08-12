@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '../components/common/ProtectedRoute'
 import RoleBasedRoute from '../components/common/RoleBasedRoute'
+import GuestRoute from '../components/common/GuestRoute'
 import Loader from '../components/common/Loader'
 import useAuth from '../hooks/useAuth'
 import { getDashboardRoute } from '../utils/navigation'
@@ -14,6 +15,9 @@ const VerifyEmail = lazy(() => import('../pages/auth/VerifyEmail'))
 const AdminDashboard = lazy(() => import('../pages/dashboard/AdminDashboard'))
 const ManagerDashboard = lazy(() => import('../pages/dashboard/ManagerDashboard'))
 const EmployeeDashboard = lazy(() => import('../pages/dashboard/EmployeeDashboard'))
+const UserProfile = lazy(() => import('../pages/dashboard/UserProfile'))
+const ProjectsPage = lazy(() => import('../pages/projects/ProjectsPage'))
+const ProjectBoard = lazy(() => import('../pages/projects/ProjectBoard'))
 
 function DashboardRedirect() {
   const { user, loading } = useAuth()
@@ -32,12 +36,64 @@ function DashboardRedirect() {
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Auth routes */}
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/register" element={<Register />} />
-      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-      <Route path="/auth/reset-password" element={<ResetPassword />} />
-      <Route path="/auth/verify-email" element={<VerifyEmail />} />
+{/* Auth routes — Guests only; already-authenticated users are redirected to their dashboard */}
+      <Route
+        path="/auth/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/auth/register"
+        element={
+          <GuestRoute>
+            <Register />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/auth/forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/auth/reset-password"
+        element={
+          <GuestRoute>
+            <ResetPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/auth/verify-email"
+        element={
+          <GuestRoute>
+            <VerifyEmail />
+          </GuestRoute>
+        }
+      />
+      {/* Alias for backward compatibility with older email links */}
+      <Route
+        path="/verify-email"
+        element={
+          <GuestRoute>
+            <VerifyEmail />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <GuestRoute>
+            <ResetPassword />
+          </GuestRoute>
+        }
+      />
 
       {/* Dashboard routes - role-based */}
       <Route
@@ -65,8 +121,36 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Generic dashboard - redirects to role-specific */}
+{/* User self-service profile (any authenticated user) */}
+      <Route
+        path="/dashboard/profile"
+        element={
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        }
+      />
+
+{/* Generic dashboard - redirects to role-specific */}
       <Route path="/dashboard" element={<DashboardRedirect />} />
+
+      {/* Project Management */}
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <ProjectsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/:id"
+        element={
+          <ProtectedRoute>
+            <ProjectBoard />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Home redirect */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

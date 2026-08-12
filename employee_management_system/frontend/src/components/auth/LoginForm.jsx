@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import { getDashboardRoute } from '../../utils/navigation'
+import PasswordInput from '../common/PasswordInput'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -40,7 +41,7 @@ export default function LoginForm() {
       navigate(nextRoute)
     } catch (err) {
       const message = err?.response?.data?.message
-      
+
       // Handle specific backend errors
       if (message?.includes('Account locked')) {
         setError(`${message} Please try again after some time.`)
@@ -58,7 +59,11 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={submit} className="auth-form">
-      <h2>Login</h2>
+      <div className="auth-brand-header">
+        <img src="/favicon.svg" alt="logo" className="auth-brand-logo" />
+        <h2>Welcome Back</h2>
+        <p className="auth-brand-sub">Sign in to your account</p>
+      </div>
       {error && <div className="form-error">{error}</div>}
 
       <div className="form-group">
@@ -75,24 +80,19 @@ export default function LoginForm() {
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="login-password">Password</label>
-        <input
-          id="login-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          required
-          autoComplete="current-password"
-          disabled={loading}
-          placeholder="••••••••"
-        />
-      </div>
+      <PasswordInput
+        id="login-password"
+        label="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        autoComplete="current-password"
+        disabled={loading}
+      />
 
       <button type="submit" className="btn primary" disabled={loading}>
         {loading ? 'Logging in…' : 'Login'}
       </button>
-
     </form>
   )
 }

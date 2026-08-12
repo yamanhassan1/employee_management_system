@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
-import { ROLES } from '../../utils/constants'
+import PasswordInput from '../common/PasswordInput'
 
 export default function RegisterForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState('employee')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const auth = useAuth()
@@ -52,13 +51,15 @@ export default function RegisterForm() {
     }
 
     try {
-      await auth.register({ name, email, password, role })
+      await auth.register({ name, email, password, confirmPassword })
       navigate('/auth/login', { state: { registered: true } })
     } catch (err) {
       const message = err?.response?.data?.message
-      
+
       if (message?.includes('already registered')) {
         setError('This email is already registered. Please login or reset your password.')
+      } else if (message?.includes('Passwords do not match')) {
+        setError('Passwords do not match. Please re-enter your password.')
       } else {
         setError(message || 'Registration failed. Please try again.')
       }
@@ -69,7 +70,11 @@ export default function RegisterForm() {
 
   return (
     <form onSubmit={submit} className="auth-form">
-      <h2>Register</h2>
+      <div className="auth-brand-header">
+        <img src="/favicon.svg" alt="logo" className="auth-brand-logo" />
+        <h2>Create Account</h2>
+        <p className="auth-brand-sub">Join the Employee Management System</p>
+      </div>
       {error && <div className="form-error">{error}</div>}
 
       <div className="form-group">
@@ -99,57 +104,33 @@ export default function RegisterForm() {
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="register-role">Role</label>
-        <select
-          id="register-role"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          disabled={loading}
-        >
-          {ROLES.map((roleOption) => (
-            <option key={roleOption} value={roleOption}>
-              {roleOption.charAt(0).toUpperCase() + roleOption.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
+      <PasswordInput
+        id="register-password"
+        label="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        minLength={8}
+        autoComplete="new-password"
+        disabled={loading}
+        hint="At least 8 characters"
+      />
 
-      <div className="form-group">
-        <label htmlFor="register-password">Password</label>
-        <input
-          id="register-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          disabled={loading}
-          placeholder="••••••••"
-        />
-        <small className="form-hint">At least 8 characters</small>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="register-confirm-password">Confirm Password</label>
-        <input
-          id="register-confirm-password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          disabled={loading}
-          placeholder="••••••••"
-        />
-      </div>
+      <PasswordInput
+        id="register-confirm-password"
+        label="Confirm Password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        required
+        minLength={8}
+        autoComplete="new-password"
+        disabled={loading}
+        hint="Re-enter your password"
+      />
 
       <button type="submit" className="btn primary" disabled={loading}>
         {loading ? 'Registering…' : 'Register'}
       </button>
-
     </form>
   )
 }

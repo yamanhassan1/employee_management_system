@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import AuthPage from '../../components/auth/AuthPage'
 import useAuth from '../../hooks/useAuth'
@@ -11,28 +11,14 @@ export default function VerifyEmail() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const auth = useAuth()
+  const autoSubmitted = useRef(false)
 
-  useEffect(() => {
-    const urlToken = searchParams.get('token')
-    if (urlToken) {
-      setToken(urlToken)
-    }
-  }, [searchParams])
-
-  const submit = async (e) => {
-    e.preventDefault()
-    if (!token.trim()) {
-      setIsError(true)
-      setMsg('Please enter a verification token')
-      return
-    }
-
+  const doVerify = async (rawToken) => {
+    setLoading(true)
     setMsg(null)
     setIsError(false)
-    setLoading(true)
-
     try {
-      await auth.verifyEmail({ token })
+      await auth.verifyEmail({ token: rawToken })
       setIsError(false)
       setMsg('Email verified successfully! Redirecting to login...')
       setTimeout(() => navigate('/auth/login'), 2000)
@@ -44,8 +30,29 @@ export default function VerifyEmail() {
     }
   }
 
+  // Auto-submit verification when a token is present in the URL query string
+  useEffect(() => {
+    const urlToken = searchParams.get('token')
+    if (urlToken && !autoSubmitted.current) {
+      autoSubmitted.current = true
+      setToken(urlToken)
+      doVerify(urlToken)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!token.trim()) {
+      setIsError(true)
+      setMsg('Please enter a verification token')
+      return
+    }
+    doVerify(token)
+  }
+
   return (
-    <AuthPage footerLinks={[{ to: '/auth/login', label: 'Already verified? Login here' }]}> 
+    <AuthPage footerLinks={[{ to: '/auth/login', label: 'Already verified? Login here' }]}>
       <form onSubmit={submit} className="auth-form">
         <h2>Verify Email</h2>
         <p className="form-subtitle">Enter the verification token sent to your email</p>
